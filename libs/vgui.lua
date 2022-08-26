@@ -22,7 +22,7 @@ local function list(source)
         end
     })
     return t
-end
+ends
 
 local function pointOnSegment(px, py, x1, y1, x2, y2)
     local cx, cy = px - x1, py - y1
