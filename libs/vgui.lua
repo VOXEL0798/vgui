@@ -85,7 +85,7 @@ function r.frame:initialize(x, y, w, h)
     self.Y = y
     self.W = w
     self.H = h
-
+    self.enabled = true
     self.child   = {} --Child objects
     self.mousestate = {
         enter = false,
@@ -127,73 +127,77 @@ function r.frame:initialize(x, y, w, h)
     end
 
     function self:draw()
-        love.graphics.push()
-        love.graphics.translate(self.X, self.Y)
-        for k, v in pairs(self.onDraw) do
-            v(self)
+        if self.enabled then
+            love.graphics.push()
+            love.graphics.translate(self.X, self.Y)
+            for k, v in pairs(self.onDraw) do
+                v(self)
+            end
+            for k, v in pairs(self.child) do
+                v:draw()
+            end
+            love.graphics.pop()
         end
-        for k, v in pairs(self.child) do
-            v:draw()
-        end
-        love.graphics.pop()
     end
 
     function self:update(dt)
-        love.graphics.push()
-        love.graphics.translate(self.X, self.Y)
-        for k, v in pairs(self.onUpdate) do
-            v(self, dt)
-        end
-        for k, v in pairs(self.child) do
-            v:update()
-        end
-        local mx, my = love.mouse.getPosition()
-        local ab = aabb(mx, my, 0, 0, self.W, self.H)
-        if ab then
-            if self.mousestate.enter == false then
-                for k, v in pairs(self.onMouseEnter) do
-                    v(self, dt)
-                end
-                self.mousestate.enter = true
-            end
-            for k, v in pairs(self.onMouseHover) do
+        if self.enabled then
+            love.graphics.push()
+            love.graphics.translate(self.X, self.Y)
+            for k, v in pairs(self.onUpdate) do
                 v(self, dt)
             end
-            if self.mousestate.downevent() then
-                for k, v in pairs(self.onMouseHold) do
+            for k, v in pairs(self.child) do
+                v:update()
+            end
+            local mx, my = love.mouse.getPosition()
+            local ab = aabb(mx, my, 0, 0, self.W, self.H)
+            if ab then
+                if self.mousestate.enter == false then
+                    for k, v in pairs(self.onMouseEnter) do
+                        v(self, dt)
+                    end
+                    self.mousestate.enter = true
+                end
+                for k, v in pairs(self.onMouseHover) do
                     v(self, dt)
                 end
-            end
-        else
-            if self.mousestate.enter == true then
-                for k, v in pairs(self.onMouseLeave) do
-                    v(self, dt)
+                if self.mousestate.downevent() then
+                    for k, v in pairs(self.onMouseHold) do
+                        v(self, dt)
+                    end
                 end
-                self.mousestate.enter = false
-            end
+            else
+                if self.mousestate.enter == true then
+                    for k, v in pairs(self.onMouseLeave) do
+                        v(self, dt)
+                    end
+                    self.mousestate.enter = false
+                end
 
-            self.mousestate.down = false
-        end
-        if self.mousestate.downevent() then
-            if self.mousestate.down == false then
-                if ab then
-                    for k, v in pairs(self.onMouseDown) do
-                        v(self, dt)
-                    end
-                end
-                self.mousestate.down = true
-            end
-        else
-            if self.mousestate.down == true then
-                if ab then
-                    for k, v in pairs(self.onMouseUp) do
-                        v(self, dt)
-                    end
-                end
                 self.mousestate.down = false
             end
+            if self.mousestate.downevent() then
+                if self.mousestate.down == false then
+                    if ab then
+                        for k, v in pairs(self.onMouseDown) do
+                            v(self, dt)
+                        end
+                    end
+                    self.mousestate.down = true
+                end
+            else
+                if self.mousestate.down == true then
+                    if ab then
+                        for k, v in pairs(self.onMouseUp) do
+                            v(self, dt)
+                        end
+                    end
+                    self.mousestate.down = false
+                end
+            end
+            love.graphics.pop()
         end
-        love.graphics.pop()
     end
 end
 
@@ -206,7 +210,7 @@ function r.slider:initialize(ax, ay, bx, by)
     self.BX = bx-(ax / 2)
     self.BY = by-(ay / 2)
     self.value = 0
-
+    self.enabled = true
     self.mousestate = {
         enter = false,
         down = false,
@@ -252,71 +256,75 @@ function r.slider:initialize(ax, ay, bx, by)
     })
 
     function self:draw()
-        love.graphics.push()
-        love.graphics.translate(self.AX, self.AY)
-        for k, v in pairs(self.onDraw) do
-            v(self)
+        if self.enabled then
+            love.graphics.push()
+            love.graphics.translate(self.AX, self.AY)
+            for k, v in pairs(self.onDraw) do
+                v(self)
+            end
+            love.graphics.pop()
         end
-        love.graphics.pop()
     end
 
     function self:update(dt)
-        love.graphics.push()
-        love.graphics.translate(self.AX, self.AY)
-        for k, v in pairs(self.onUpdate) do
-            v(self, dt)
-        end
-        local mx, my = love.mouse.getPosition()
-        local x, y = pointOnSegment(mx, my, self.AX, self.AY, self.BX, self.BY)
-        local ab = distance(mx, my, x, y) < 3
-        if ab then
-            if self.mousestate.enter == false then
-                for k, v in pairs(self.onMouseEnter) do
-                    v(self, dt)
-                end
-                self.mousestate.enter = true
-            end
-            for k, v in pairs(self.onMouseHover) do
+        if self.enabled then
+            love.graphics.push()
+            love.graphics.translate(self.AX, self.AY)
+            for k, v in pairs(self.onUpdate) do
                 v(self, dt)
             end
-        else
-            if self.mousestate.enter == true then
-                for k, v in pairs(self.onMouseLeave) do
-                    v(self, dt)
-                end
-                self.mousestate.enter = false
-            end
-
-            self.mousestate.down = false
-        end
-
-        if self.mousestate.downevent() then
-            if self.mousestate.down == false then
-                if ab then
-                    self.mousestate.targ = self
-                    for k, v in pairs(self.onMouseDown) do
+            local mx, my = love.mouse.getPosition()
+            local x, y = pointOnSegment(mx, my, self.AX, self.AY, self.BX, self.BY)
+            local ab = distance(mx, my, x, y) < 3
+            if ab then
+                if self.mousestate.enter == false then
+                    for k, v in pairs(self.onMouseEnter) do
                         v(self, dt)
                     end
+                    self.mousestate.enter = true
                 end
-                self.mousestate.down = true
-            end
-            if self.mousestate.targ == self then
-                for k, v in pairs(self.onMouseHold) do
+                for k, v in pairs(self.onMouseHover) do
                     v(self, dt)
                 end
-            end
-        else
-            self.mousestate.targ = {}
-            if self.mousestate.down == true then
-                if ab then
-                    for k, v in pairs(self.onMouseUp) do
+            else
+                if self.mousestate.enter == true then
+                    for k, v in pairs(self.onMouseLeave) do
                         v(self, dt)
                     end
+                    self.mousestate.enter = false
                 end
+
                 self.mousestate.down = false
             end
+
+            if self.mousestate.downevent() then
+                if self.mousestate.down == false then
+                    if ab then
+                        self.mousestate.targ = self
+                        for k, v in pairs(self.onMouseDown) do
+                            v(self, dt)
+                        end
+                    end
+                    self.mousestate.down = true
+                end
+                if self.mousestate.targ == self then
+                    for k, v in pairs(self.onMouseHold) do
+                        v(self, dt)
+                    end
+                end
+            else
+                self.mousestate.targ = {}
+                if self.mousestate.down == true then
+                    if ab then
+                        for k, v in pairs(self.onMouseUp) do
+                            v(self, dt)
+                        end
+                    end
+                    self.mousestate.down = false
+                end
+            end
+            love.graphics.pop()
         end
-        love.graphics.pop()
     end
 end
 
