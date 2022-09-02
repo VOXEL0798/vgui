@@ -209,6 +209,13 @@ function r.slider:initialize(ax, ay, bx, by, def_value)
     self.AY = ay/2
     self.BX = bx-(ax / 2)
     self.BY = by-(ay / 2)
+    self.__private = {
+        ax = ax,
+        ay = ay,
+        bx = bx,
+        by = by
+    }
+    
     self.value = def_value or 0
     self.enabled = true
     self.mousestate = {
@@ -219,10 +226,10 @@ function r.slider:initialize(ax, ay, bx, by, def_value)
     }
 
     function self:setPos(ax, ay, bx, by)
-        self.AX = ax/2
-        self.AY = ay/2
-        self.BX = bx-(ax * .5)
-        self.BY = by-(ay * .5)
+        self.AX = (ax or self.__private.ax) * .5
+        self.AY = (ay or self.__private.ay) * .5
+        self.BX = (bx or self.__private.bx)-((ax or self.__private.ax) * .5)
+        self.BY = (by or self.__private.by)-((ay or self.__private.ay) * .5)
     end
 
     function self:addPos(ax, ay, bx, by)
