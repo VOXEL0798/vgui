@@ -204,12 +204,12 @@ end
 ---@SLDIER
 
 r.slider = class("vgui.slider")
-function r.slider:initialize(ax, ay, bx, by)
+function r.slider:initialize(ax, ay, bx, by, def_value)
     self.AX = ax/2
     self.AY = ay/2
     self.BX = bx-(ax / 2)
     self.BY = by-(ay / 2)
-    self.value = 0
+    self.value = def_value or 0
     self.enabled = true
     self.mousestate = {
         enter = false,
